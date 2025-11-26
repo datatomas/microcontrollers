@@ -1,5 +1,8 @@
 Using the Wake-on-LAN Server
 
+
+Checkout medium article https://medium.com/@datatomas/micropython-wake-on-lan-button-for-an-ubuntu-aorus-desktop-3b94d8656825?postPublishedType=repub
+
 <img width="496" height="403" alt="image" src="https://github.com/user-attachments/assets/5a3aa6b5-03cf-4a3b-b291-0bf86189a359" />
 
 
