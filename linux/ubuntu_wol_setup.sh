@@ -1,24 +1,22 @@
 #!/usr/bin/env bash
 set -e
 
-echo "Installing tools..."
+echo "=== Installing required tools ==="
 sudo apt update
 sudo apt install -y ethtool net-tools lsb-release
 
-echo "Checking interface..."
+echo "=== Listing network interfaces ==="
 ip link
 
 read -p "Enter your wired interface (e.g., enp7s0): " IFACE
 
-echo "Showing current WoL state:"
-sudo ethtool $IFACE | grep Wake-on
+echo "=== Current WoL state ==="
+sudo ethtool "$IFACE" | grep Wake-on || true
 
-echo "Enabling WoL via NetworkManager..."
+echo "=== Enabling WoL via NetworkManager ==="
 sudo nmcli connection modify "$IFACE" 802-3-ethernet.wake-on-lan magic
 
-echo "Optional: Add SecureOn password:"
-read -p "Enter SecureOn password (6-byte hex, or empty to skip): " WOLPWD
-
+read -p "Enter SecureOn password (6-byte hex, leave blank to skip): " WOLPWD
 if [ ! -z "$WOLPWD" ]; then
     sudo nmcli connection modify "$IFACE" 802-3-ethernet.wake-on-lan-password "$WOLPWD"
 fi
@@ -26,7 +24,33 @@ fi
 echo "Restarting NetworkManager..."
 sudo systemctl restart NetworkManager
 
-echo "Final WoL config:"
-nmcli connection show "$IFACE" | grep -i wake
+echo "=== Creating persistent systemd service ==="
+ETHTOOL_PATH=$(which ethtool)
 
-echo "Done."
+sudo bash -c "cat >/etc/systemd/system/wol.service" <<EOF
+[Unit]
+Description=Enable Wake-on-LAN for $IFACE
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=$ETHTOOL_PATH -s $IFACE wol g
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+echo "=== Reloading systemd ==="
+sudo systemctl daemon-reload
+
+echo "=== Enabling and starting WoL service ==="
+sudo systemctl enable --now wol.service
+
+echo "=== Testing service ==="
+sudo systemctl status wol.service --no-pager
+
+echo "=== Verifying final WoL state ==="
+sudo ethtool "$IFACE" | grep Wake-on
+
+echo "=== All done! WoL is now persistent across reboots. ==="
