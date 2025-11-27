@@ -53,4 +53,18 @@ sudo systemctl status wol.service --no-pager
 echo "=== Verifying final WoL state ==="
 sudo ethtool "$IFACE" | grep Wake-on
 
+echo "Show Wol Password"
+nmcli connection show "netplan-yourconnectionname" | grep wake-on-lan-password
+
+#show password
+nmcli connection show "netplan-enp7s0" | grep wake-on-lan-password
+
+#set new password
+sudo nmcli connection modify "netplan-enp7s0" 802-3-ethernet.wake-on-lan-password A1:B2:C3:D4:E5:F6
+
+#restart
+sudo systemctl restart NetworkManager
+
+
 echo "=== All done! WoL is now persistent across reboots. ==="
+
