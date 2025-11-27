@@ -22,8 +22,8 @@ prints its IP address and broadcast address to the USB serial console
 
 You’ll see something like:
 
-Pico IP: 192.168.1.77
-Broadcast IP: 192.168.1.255
+Pico IP: 190.165.1.55
+Broadcast IP: 192.160.1.250
 HTTP server on port 80
 
 
